@@ -88,3 +88,139 @@ The expected delivery method for this project is as follows:
 4.  **Notification:** Notify the reviewer that the code is ready and providing the link to the repository or perform an invitation to your repository.
 
 ***Please DO NOT submit the code as a zip file or a Pull Request (PR) to the original repository.*** This process allows us to review your commit history and development workflow directly.
+
+---
+
+## 🛠️ Local Setup, Run & Test Guide
+
+### 1. Requirements
+
+| Tool        | Version           | Notes                                                                 |
+| :---------- | :---------------- | :-------------------------------------------------------------------- |
+| **Node.js** | `>= 20.x`         | LTS recommended. Check with `node -v`.                                |
+| **npm**     | `>= 10.x`         | Bundled with Node 20+. (`pnpm`/`yarn` also work.)                     |
+| **MongoDB** | `>= 6.x`          | A reachable instance — local, Docker, or Atlas.                       |
+| **Git**     | any recent        | To clone the repo.                                                    |
+| **Docker**  | *(optional)*      | Only if you prefer running MongoDB and/or the API in containers.      |
+
+### 2. Step-by-step Setup
+
+```bash
+# 1. Clone
+git clone https://github.com/moonahmed786/smart-logistics-api.git
+cd smart-logistics-api
+
+# 2. Install dependencies
+npm install
+
+# 3. Create your local env file from the template
+cp .env.example .env
+
+# 4. Start MongoDB (pick ONE)
+#    a) Local install:
+#       brew services start mongodb-community   # macOS
+#       sudo systemctl start mongod             # Linux
+#    b) Docker one-liner:
+#       docker run -d --name mongo -p 27017:27017 mongo:7
+#    c) MongoDB Atlas: paste your connection string into MONGODB_URI in .env
+```
+
+### 3. Environment Variables (`.env`)
+
+| Variable              | Default                                       | Purpose                                                  |
+| :-------------------- | :-------------------------------------------- | :------------------------------------------------------- |
+| `NODE_ENV`            | `development`                                 | Runtime mode.                                            |
+| `PORT`                | `3000`                                        | HTTP port the API listens on.                            |
+| `LOG_LEVEL`           | `info`                                        | Pino log level (`trace`/`debug`/`info`/`warn`/`error`).  |
+| `MONGODB_URI`         | `mongodb://localhost:27017/smart_logistics`   | **Required.** Mongo connection string.                   |
+| `MAX_GRAPHS`          | `5`                                           | LRU cap on stored graphs.                                |
+| `API_KEY`             | *(empty)*                                     | If set, clients must send `x-api-key: <value>` header.   |
+| `CORS_ORIGIN`         | `*`                                           | CORS allow-list.                                         |
+| `RATE_LIMIT_TTL_MS`   | `60000`                                       | Throttle window.                                         |
+| `RATE_LIMIT_MAX`      | `120`                                         | Max requests per window per IP.                          |
+| `BODY_LIMIT_BYTES`    | `1048576`                                     | Max upload body size (bytes).                            |
+| `DIJKSTRA_TIMEOUT_MS` | `500`                                         | Hard wall-clock cap on a single `optimize()` call.       |
+
+### 4. How to Run
+
+```bash
+# Dev mode (hot reload)
+npm run start:dev
+
+# Production build + run
+npm run build
+npm run start:prod
+```
+
+On success you'll see Nest bootstrap logs, then the server listens on `http://localhost:3000`.
+
+**Run with Docker (optional):**
+
+```bash
+docker build -t smart-logistics-api .
+docker run --rm -p 3000:3000 --env-file .env smart-logistics-api
+```
+
+### 5. How to Test
+
+```bash
+# Unit tests (Jest)
+npm test
+
+# Watch mode
+npm run test:watch
+
+# Coverage report (outputs to ./coverage)
+npm run test:cov
+
+# End-to-end tests
+npm run test:e2e
+```
+
+### 6. How to Interact with the System
+
+**a) Swagger UI (easiest)**
+
+Open `http://localhost:3000/docs` in your browser — you can try every endpoint directly from the UI.
+
+**b) `curl` examples**
+
+> If `API_KEY` is set in `.env`, append `-H "x-api-key: <your-key>"` to every request below.
+
+```bash
+# 1) Upload a network — returns { "id": "<graphId>" }
+curl -X POST http://localhost:3000/network/upload \
+  -H "Content-Type: application/json" \
+  -d '{
+    "edges": [
+      {"from":"A","to":"B","cost":10},
+      {"from":"A","to":"C","cost":5},
+      {"from":"B","to":"D","cost":8},
+      {"from":"C","to":"D","cost":12},
+      {"from":"D","to":"E","cost":12}
+    ]
+  }'
+
+# 2) List nodes for that graph
+curl http://localhost:3000/network/nodes/<graphId>
+
+# 3) Find the optimal route
+curl -X POST http://localhost:3000/route/optimize/<graphId> \
+  -H "Content-Type: application/json" \
+  -d '{"originNodeId":"A","destinationNodeId":"E"}'
+# → { "graphId":"...", "totalCost": 25, "path":["A","C","D","E"], "durationMs": 4 }
+```
+
+**c) HTTP clients**
+
+Import the OpenAPI spec from `http://localhost:3000/docs-json` into Postman / Insomnia / Bruno to get a ready-made collection of all endpoints.
+
+### 7. Troubleshooting
+
+| Symptom                                  | Likely cause / fix                                                       |
+| :--------------------------------------- | :----------------------------------------------------------------------- |
+| `MongooseServerSelectionError`           | Mongo not running or `MONGODB_URI` is wrong. Verify with `mongosh`.      |
+| `401 Unauthorized`                       | `API_KEY` is set but the request is missing the `x-api-key` header.      |
+| `EADDRINUSE` on startup                  | Port `3000` already in use. Change `PORT` in `.env`.                     |
+| `429 Too Many Requests`                  | Hit the per-IP throttle. Raise `RATE_LIMIT_MAX` or wait the TTL.         |
+| `400 Bad Request` on `/network/upload`   | Body exceeds `BODY_LIMIT_BYTES` or fails DTO validation — check shape.   |
