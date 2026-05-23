@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Graph } from '../domain/types';
 import { NetworkRepository } from './network.repository';
 
@@ -9,7 +8,9 @@ function readMaxGraphs(): number {
   return Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : DEFAULT_MAX_GRAPHS;
 }
 
-@Injectable()
+/**
+ * Test-only in-memory repository. Not wired into the runtime module — production uses Mongo.
+ */
 export class InMemoryNetworkRepository implements NetworkRepository {
   private readonly store = new Map<string, Graph>();
   private readonly maxGraphs = readMaxGraphs();

@@ -1,22 +1,18 @@
 import { Module } from '@nestjs/common';
-import { InMemoryNetworkRepository } from '../../storage/in-memory.repository';
+import { MongooseModule } from '@nestjs/mongoose';
+import { GraphModel, GraphSchema } from '../../storage/graph.schema';
+import { MongoNetworkRepository } from '../../storage/mongo.repository';
 import { NETWORK_REPOSITORY } from '../../storage/network.repository';
-import { SqliteNetworkRepository } from '../../storage/sqlite.repository';
 import { NetworkController } from './network.controller';
 import { NetworkService } from './network.service';
 
 @Module({
+  imports: [MongooseModule.forFeature([{ name: GraphModel.name, schema: GraphSchema }])],
   controllers: [NetworkController],
   providers: [
     NetworkService,
-    InMemoryNetworkRepository,
-    SqliteNetworkRepository,
-    {
-      provide: NETWORK_REPOSITORY,
-      inject: [InMemoryNetworkRepository, SqliteNetworkRepository],
-      useFactory: (memory: InMemoryNetworkRepository, sqlite: SqliteNetworkRepository) =>
-        process.env.STORAGE_DRIVER === 'sqlite' ? sqlite : memory,
-    },
+    MongoNetworkRepository,
+    { provide: NETWORK_REPOSITORY, useExisting: MongoNetworkRepository },
   ],
   exports: [NETWORK_REPOSITORY, NetworkService],
 })

@@ -1,14 +1,11 @@
 import * as Joi from 'joi';
 
-export type StorageDriver = 'memory' | 'sqlite';
-
 export interface AppConfig {
   PORT: number;
   NODE_ENV: 'development' | 'test' | 'production';
   LOG_LEVEL: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
   MAX_GRAPHS: number;
-  STORAGE_DRIVER: StorageDriver;
-  SQLITE_PATH: string;
+  MONGODB_URI: string;
   API_KEY: string;
   CORS_ORIGIN: string;
   RATE_LIMIT_TTL_MS: number;
@@ -24,8 +21,7 @@ export const appConfigSchema = Joi.object<AppConfig, true>({
     .valid('fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent')
     .default('info'),
   MAX_GRAPHS: Joi.number().integer().min(1).max(10_000).default(5),
-  STORAGE_DRIVER: Joi.string().valid('memory', 'sqlite').default('memory'),
-  SQLITE_PATH: Joi.string().default('./data/graphs.db'),
+  MONGODB_URI: Joi.string().required(),
   API_KEY: Joi.string().allow('').default(''),
   CORS_ORIGIN: Joi.string().default('*'),
   RATE_LIMIT_TTL_MS: Joi.number().integer().min(100).default(60_000),

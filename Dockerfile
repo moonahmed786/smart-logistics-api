@@ -1,9 +1,7 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN apk add --no-cache python3 make g++ \
- && npm ci --include=dev \
- && apk del python3 make g++
+RUN npm ci --include=dev
 
 FROM node:22-alpine AS build
 WORKDIR /app

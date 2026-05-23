@@ -20,7 +20,7 @@ Successful completion of this project requires demonstrating proficiency in the 
 | Component | Technology | Reasoning |
 | :--- | :--- | :--- |
 | **Language** | **TypeScript** | Required for type safety and advanced structure. |
-| **Database** | **In Memory** or **PostgreSQL** or **MongoDB** | To persist the network data (Nodes, Edges, Weights). If in memory just store the last 5 networks |
+| **Database** | **MongoDB** | To persist the network data (Nodes, Edges, Weights). |
 | **Testing** | **Jest** | Required for comprehensive unit testing of the core algorithm logic. |
 | **Documentation** | Auto-generation of OpenAPI Specification from code. |
 
