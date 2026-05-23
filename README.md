@@ -136,8 +136,8 @@ cp .env.example .env
 | `MAX_GRAPHS`          | `5`                                           | LRU cap on stored graphs.                                |
 | `API_KEY`             | *(empty)*                                     | If set, clients must send `x-api-key: <value>` header.   |
 | `CORS_ORIGIN`         | `*`                                           | CORS allow-list.                                         |
-| `RATE_LIMIT_TTL_MS`   | `60000`                                       | Throttle window.                                         |
-| `RATE_LIMIT_MAX`      | `120`                                         | Max requests per window per IP.                          |
+| `RATE_LIMIT_TTL_MS`   | `1000`                                        | Throttle window. Default 1s.                             |
+| `RATE_LIMIT_MAX`      | `5`                                           | Max requests per window per IP. Default 5 req/s (DoS protection). |
 | `BODY_LIMIT_BYTES`    | `1048576`                                     | Max upload body size (bytes).                            |
 | `DIJKSTRA_TIMEOUT_MS` | `500`                                         | Hard wall-clock cap on a single `optimize()` call.       |
 

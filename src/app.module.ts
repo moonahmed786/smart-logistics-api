@@ -31,12 +31,14 @@ import { RouteModule } from './modules/route/route.module';
             : undefined,
       },
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: Number(process.env.RATE_LIMIT_TTL_MS ?? 60_000),
-        limit: Number(process.env.RATE_LIMIT_MAX ?? 120),
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      useFactory: () => [
+        {
+          ttl: Number(process.env.RATE_LIMIT_TTL_MS ?? 1_000),
+          limit: Number(process.env.RATE_LIMIT_MAX ?? 5),
+        },
+      ],
+    }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

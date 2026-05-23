@@ -24,8 +24,8 @@ export const appConfigSchema = Joi.object<AppConfig, true>({
   MONGODB_URI: Joi.string().required(),
   API_KEY: Joi.string().allow('').default(''),
   CORS_ORIGIN: Joi.string().default('*'),
-  RATE_LIMIT_TTL_MS: Joi.number().integer().min(100).default(60_000),
-  RATE_LIMIT_MAX: Joi.number().integer().min(1).default(120),
+  RATE_LIMIT_TTL_MS: Joi.number().integer().min(100).default(1_000),
+  RATE_LIMIT_MAX: Joi.number().integer().min(1).default(5),
   BODY_LIMIT_BYTES: Joi.number().integer().min(1024).default(1_048_576),
   DIJKSTRA_TIMEOUT_MS: Joi.number().integer().min(10).default(500),
 }).unknown(true);
